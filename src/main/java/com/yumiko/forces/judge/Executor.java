@@ -9,6 +9,8 @@ import java.nio.file.Paths;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Logger;
 
 public class Executor {
@@ -48,20 +50,8 @@ public class Executor {
         }
 
     }
-    public static boolean isRightAnswer() {
-        String answer = path + outputFile;
-        String key = path + keyFile;
-        try {
-            String answerHash = calculateMD5(answer);
-            String keyHash = calculateMD5(key);
-            return answerHash.equals(keyHash);
-        } catch (IOException | NoSuchAlgorithmException e) {
-            e.printStackTrace();
-        }
-        return false;
-    }
-    public static String getOutput() {
-        String location = path + outputFile;
+    public static String getContentFromFile(String filename) {
+        String location = path + filename;
 
         try (BufferedReader reader = new BufferedReader(new FileReader(location))) {
             StringBuilder result = new StringBuilder();

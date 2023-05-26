@@ -44,22 +44,23 @@ public class Marker {
 
             for (Case i : cases) {
                 Executor.createFile(i.getInput(),Executor.inputFile);
-                Executor.createFile(i.getOutput(), Executor.keyFile);
 
                 Executor.executeFile();
 
-                boolean isRight = Executor.isRightAnswer();
-                detail_temp.add(new Detail(isRight, i.getOutput(),Executor.getOutput()));
+                String output = Executor.getContentFromFile(Executor.outputFile);
+
+                boolean isRight = output.equals(i.getOutput());
+                detail_temp.add(new Detail(isRight, i.getOutput(), output));
                 if (isRight) point++;
 
             }
 
             details = detail_temp;
-            Executor.deleteFile(Executor.inputFile);
-            Executor.deleteFile(Executor.outputFile);
-            Executor.deleteFile(Executor.keyFile);
-            Executor.deleteFile(Executor.executable);
-            Executor.deleteFile(Executor.sourceFile);
+//            Executor.deleteFile(Executor.inputFile);
+//            Executor.deleteFile(Executor.outputFile);
+//            Executor.deleteFile(Executor.keyFile);
+//            Executor.deleteFile(Executor.executable);
+//            Executor.deleteFile(Executor.sourceFile);
 
         }
 
