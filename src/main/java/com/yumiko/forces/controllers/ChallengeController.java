@@ -18,11 +18,8 @@ import java.util.Optional;
 @RequestMapping(path = "/challenge")
 public class ChallengeController {
 
-    String path = "./code";
-
     @Autowired
     private ChallengeRepo challengeRepo;
-
     @Autowired
     private CaseRepo caseRepo;
 
@@ -43,9 +40,11 @@ public class ChallengeController {
     }
 
     @PostMapping(value = "/{id}")
-    public @ResponseBody ResponseEntity<Result> submitChallenge(@RequestParam("source") MultipartFile source, @PathVariable("id") int problem_id) {
-        Executor.compileCpp(source);
-        Marker.perform(problem_id, caseRepo);
+    public @ResponseBody ResponseEntity<Result> submitChallenge(@RequestParam("source") MultipartFile source,@RequestParam("language") String language, @PathVariable("id") int problem_id) {
+
+        Executor.storeSourceFile(source);
+        Marker.perform(problem_id,language ,caseRepo);
+
         return ResponseEntity.status(HttpStatus.OK).body(Marker.getResult());
     }
 

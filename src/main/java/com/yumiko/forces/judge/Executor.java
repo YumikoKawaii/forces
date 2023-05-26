@@ -6,11 +6,6 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.security.DigestInputStream;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.logging.Logger;
 
 public class Executor {
@@ -19,23 +14,8 @@ public class Executor {
     private static final String path = "./code/";
     public static final String inputFile = "input.txt";
     public static final String outputFile = "output.txt";
-    public static final String keyFile = "key.txt";
     public static final String executable = "source";
-
     public static String sourceFile;
-
-    private static String calculateMD5(String filePath) throws IOException, NoSuchAlgorithmException {
-        MessageDigest md = MessageDigest.getInstance("MD5");
-        try (DigestInputStream dis = new DigestInputStream(new FileInputStream(filePath), md)) {
-            while (dis.read() != -1) ;
-            byte[] hashBytes = md.digest();
-            StringBuilder hashString = new StringBuilder();
-            for (byte b : hashBytes) {
-                hashString.append(Integer.toHexString((b & 0xFF) | 0x100).substring(1, 3));
-            }
-            return hashString.toString();
-        }
-    }
     public static void createFile(String input, String filename) {
 
         String location = path + filename;
@@ -76,7 +56,7 @@ public class Executor {
             e.printStackTrace();
         }
     }
-    public static void compileCpp(MultipartFile source) {
+    public static void storeSourceFile(MultipartFile source) {
 
         Path destination = Paths.get(path, source.getOriginalFilename());
 
@@ -87,28 +67,69 @@ public class Executor {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+    public static void removeAll() {
+
+        String command = "rm -rf " + path + "*";
 
         try {
-            String compile = "g++ " + path + source.getOriginalFilename() + " -o " + path + executable;
+            Process process = new ProcessBuilder("bash","-c",command).start();
 
-            ProcessBuilder processBuilder = new ProcessBuilder(compile.split("\\s+"));
+            if (process.waitFor() != 0) {
+                logger.warning("Error while cleaning storage!");
+            }
+
+        } catch (IOException | InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+
+    }
+    private static String compileCommand(String language) {
+
+        return switch (language) {
+            case "cpp" -> "g++ " + path + sourceFile + " -o " + path + executable;
+            case "c" -> "gcc " + path + sourceFile + " -o " + path + executable;
+            case "java_8" -> "javac " + path + sourceFile;
+            case "go" -> "go build " + path + sourceFile;
+            default -> "";
+        };
+
+    }
+    public static void compile(String language) {
+
+        try {
+
+            String command = compileCommand(language);
+
+            ProcessBuilder processBuilder = new ProcessBuilder(command.split("\\s+"));
             Process process = processBuilder.start();
 
             if (process.waitFor() != 0) {
                 logger.warning("Error occur while compiling user's file!");
             }
+
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
         }
 
     }
-    public static void executeFile() {
+    private static String executeCommand(String language) {
 
-        String execute = path + executable;
+        return switch (language) {
+            case "cpp", "c" -> path + executable;
+            case "java" -> "java " + path + sourceFile;
+            case "go" -> path + "./main";
+            default -> "";
+        };
+
+    }
+    public static void execute(String language) {
+
+        String command = executeCommand(language);
         String input = path + inputFile;
         String output = path + outputFile;
 
-        ProcessBuilder processBuilder = new ProcessBuilder(execute);
+        ProcessBuilder processBuilder = new ProcessBuilder(command);
         processBuilder.redirectInput(new File(input));
         processBuilder.redirectOutput(new File(output));
 

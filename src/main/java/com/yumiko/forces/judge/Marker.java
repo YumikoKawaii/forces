@@ -2,7 +2,6 @@ package com.yumiko.forces.judge;
 
 import com.yumiko.forces.models.Case;
 import com.yumiko.forces.repositories.CaseRepo;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -21,6 +20,7 @@ class Detail {
         this.expected = expected;
     }
 }
+
 @Service
 public class Marker {
 
@@ -29,7 +29,7 @@ public class Marker {
     private static List<Detail> details = new ArrayList<>();
     private static int point;
 
-    public static void perform (int problem_id, CaseRepo caseRepo) {
+    public static void perform(int problem_id, String language, CaseRepo caseRepo) {
 
         point = 0;
         cases = caseRepo.findAllCaseByProblemId(problem_id);
@@ -40,27 +40,25 @@ public class Marker {
 
         if (!cases.isEmpty()) {
 
+            Executor.compile(language);
+
             List<Detail> detail_temp = new ArrayList<>();
 
             for (Case i : cases) {
-                Executor.createFile(i.getInput(),Executor.inputFile);
+                Executor.createFile(i.getInput(), Executor.inputFile);
 
-                Executor.executeFile();
+                Executor.execute(language);
 
                 String output = Executor.getContentFromFile(Executor.outputFile);
 
                 boolean isRight = output.equals(i.getOutput());
-                detail_temp.add(new Detail(isRight, i.getOutput(), output));
+                detail_temp.add(new Detail(isRight, output, i.getOutput()));
                 if (isRight) point++;
 
             }
 
             details = detail_temp;
-//            Executor.deleteFile(Executor.inputFile);
-//            Executor.deleteFile(Executor.outputFile);
-//            Executor.deleteFile(Executor.keyFile);
-//            Executor.deleteFile(Executor.executable);
-//            Executor.deleteFile(Executor.sourceFile);
+            Executor.removeAll();
 
         }
 
