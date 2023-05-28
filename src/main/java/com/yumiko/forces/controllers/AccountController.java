@@ -33,6 +33,7 @@ public class AccountController {
 
         try {
             id = Hashing.hash(account.getEmail() + Hashing.randomString(10));
+            if (id.length() > Account.ID_MAX_LENGTH) id = id.substring(0, Account.ID_MAX_LENGTH);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("");
         }
@@ -45,7 +46,7 @@ public class AccountController {
 
         try {
 
-            session.setAttribute("auth", id + "." + Token.generateToken(id));
+            session.setAttribute("auth", Token.generateToken(id));
             return ResponseEntity.status(HttpStatus.OK).body("");
 
         } catch (Exception e) {
@@ -67,7 +68,7 @@ public class AccountController {
             }
 
             String id = accountRepo.findByEmail(account.getEmail()).getId();
-            session.setAttribute("auth", id + "." + Token.generateToken(id));
+            session.setAttribute("auth", Token.generateToken(id));
             return ResponseEntity.status(HttpStatus.OK).body("");
 
         } catch (Exception e) {

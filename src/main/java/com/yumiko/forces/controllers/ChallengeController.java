@@ -2,10 +2,13 @@ package com.yumiko.forces.controllers;
 
 import com.yumiko.forces.judge.Executor;
 import com.yumiko.forces.judge.Marker;
-import com.yumiko.forces.judge.Result;
 import com.yumiko.forces.models.Challenge;
+import com.yumiko.forces.models.Contribution;
 import com.yumiko.forces.repositories.CaseRepo;
 import com.yumiko.forces.repositories.ChallengeRepo;
+import com.yumiko.forces.repositories.ContributionRepo;
+import com.yumiko.forces.util.Token;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,6 +25,8 @@ public class ChallengeController {
     private ChallengeRepo challengeRepo;
     @Autowired
     private CaseRepo caseRepo;
+    @Autowired
+    private ContributionRepo contributionRepo;
 
     @GetMapping(value = "/{id}")
     public @ResponseBody ResponseEntity<Optional<Challenge>> getChallengeById(@PathVariable("id") int id) {
@@ -29,18 +34,38 @@ public class ChallengeController {
     }
 
     @PostMapping
-    public @ResponseBody ResponseEntity<String> postNewChallenge(@ModelAttribute("challenge") Challenge challenge) {
+    public @ResponseBody ResponseEntity<?> postNewChallenge(@ModelAttribute("challenge") Challenge challenge, HttpSession session) {
 
-        if (challenge.getTopic().isEmpty() || challenge.getProblem().isEmpty()) {
+        String id = "";
+        try {
+            if (session.getAttribute("auth") == null || !Token.validateToken(session.getAttribute("auth").toString())) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("");
+            }
+            id = Token.extractId(session.getAttribute("auth").toString());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("");
+        }
+
+        if (challenge.getTopic() == null || challenge.getTopic().isEmpty() || challenge.getProblem() == null || challenge.getProblem().isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body("");
         }
 
-        challengeRepo.save(challenge);
+        contributionRepo.save(new Contribution(id, challenge.getTopic(), challenge.getProblem()));
         return ResponseEntity.status(HttpStatus.OK).body("");
     }
 
     @PostMapping(value = "/{id}")
-    public @ResponseBody ResponseEntity<Result> submitChallenge(@RequestParam("source") MultipartFile source,@RequestParam("language") String language, @PathVariable("id") int problem_id) {
+    public @ResponseBody ResponseEntity<?> submitChallenge(@RequestParam("source") MultipartFile source,@RequestParam("language") String language, @PathVariable("id") int problem_id, HttpSession session) {
+
+        String id = "";
+        try {
+            if (session.getAttribute("auth") == null || !Token.validateToken(session.getAttribute("auth").toString())) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("");
+            }
+            id = Token.extractId(session.getAttribute("auth").toString());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("");
+        }
 
         Executor.storeSourceFile(source);
         Marker.perform(problem_id,language ,caseRepo);

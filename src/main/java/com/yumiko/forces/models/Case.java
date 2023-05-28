@@ -9,7 +9,6 @@ public class Case {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
-
     private String input;
     private String output;
     private int problem_id;

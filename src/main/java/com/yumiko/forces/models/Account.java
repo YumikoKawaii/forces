@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 @Table(name = "accounts")
 public class Account {
 
+    public static final int ID_MAX_LENGTH = 50;
     @Id
     private String id;
     private String email;

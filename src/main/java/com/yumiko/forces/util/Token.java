@@ -12,24 +12,33 @@ public class Token {
 
     }
 
-    public static boolean validateToken(String token) throws Exception {
+    public static String extractId(String token) throws Exception {
 
         String[] tokenParts = token.split("\\.");
+        return tokenParts[0];
+
+    }
+
+    public static boolean validateToken(String token) {
+
+        String[] tokenParts = token.split("\\.");
+
         String id = tokenParts[0];
-        String auth = Encryptor.decrypt(tokenParts[1]);
+        String auth = null;
 
-        if (!id.equals(auth.substring(0, id.length() - 1))) {
-            throw new Exception("Invalid token");
+        try {
+            auth = Encryptor.decrypt(tokenParts[1]);
+        } catch (Exception e) {
+            return false;
         }
 
-        String expiry = auth.substring(id.length(), auth.length() - 1);
+        if (!id.equals(auth.substring(0, id.length()))) {
+            return false;
+        }
 
+        String expiry = auth.substring(id.length());
         LocalDateTime expiryDate = LocalDateTime.parse(expiry);
-        if (LocalDateTime.now().isAfter(expiryDate)) {
-            throw new Exception("Token expired");
-        }
-
-        return true;
+        return !LocalDateTime.now().isAfter(expiryDate);
 
     }
 

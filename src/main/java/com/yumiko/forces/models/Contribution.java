@@ -2,33 +2,32 @@ package com.yumiko.forces.models;
 
 import jakarta.persistence.*;
 
-import java.io.Serializable;
-
 @Entity
-@Table(name = "challenges")
-public class Challenge implements Serializable {
-
+@Table(name = "contributions")
+public class Contribution {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
+    private String contributor;
     private String topic;
     private String problem;
 
-    public Challenge() {
+    public Contribution() {
     }
 
-    public Challenge(String topic, String problem) {
+    public Contribution(String contributor, String topic, String problem) {
         super();
+        this.contributor = contributor;
         this.topic = topic;
         this.problem = problem;
     }
 
-    public int getId() {
-        return id;
+    public String getContributor() {
+        return contributor;
     }
 
-    public void setId(int id) {
-        this.id = id;
+    public void setContributor(String contributor) {
+        this.contributor = contributor;
     }
 
     public String getTopic() {
@@ -45,10 +44,5 @@ public class Challenge implements Serializable {
 
     public void setProblem(String problem) {
         this.problem = problem;
-    }
-
-    @Override
-    public String toString() {
-        return "topic: " + this.topic + ", problem: " + this.problem;
     }
 }
